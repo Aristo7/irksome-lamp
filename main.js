@@ -136,6 +136,17 @@ ThreeJSRoom.prototype.init = function(){
     this.scene.add( this.model_skyBox );
 };
 
+window.addEventListener( 'resize', onWindowResize, false );
+
+function onWindowResize(){
+
+    LampRoom.camera.aspect = window.innerWidth / window.innerHeight;
+    LampRoom.camera.updateProjectionMatrix();
+
+    LampRoom.renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
 // Main render loop
 ThreeJSRoom.prototype.render = function () {
     requestAnimationFrame( ThreeJSRoom.prototype.render );
