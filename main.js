@@ -89,8 +89,6 @@ var render = function () {
 };
 
 function rotate_slowly(model, delta){
-    //model.rotation.x += delta;
-    //model.rotation.y += delta;
     model.rotation.z += delta;
 }
 
@@ -102,8 +100,18 @@ function set_floor_color(value){
 }
 
 function set_lamp_color(value){
-    //var lamp_material = model_lamp.material;
-    //lamp_material.color.r = value[0] / 256;
-    //lamp_material.color.g = value[1] / 256;
-    //lamp_material.color.b = value[2] / 256;
+    var new_material = new THREE.MeshBasicMaterial();
+    new_material.color.r = value[0] / 256;
+    new_material.color.g = value[1] / 256;
+    new_material.color.b = value[2] / 256;
+    setMaterial(model_lamp, new_material);
+}
+
+var setMaterial = function(node, material) {
+    node.material = material;
+    if (node.children) {
+        for (var i = 0; i < node.children.length; i++) {
+            setMaterial(node.children[i], material);
+        }
+    }
 }
