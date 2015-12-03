@@ -14,6 +14,7 @@ var model_plane;
 var loader = new THREE.ColladaLoader();
 var default_floor_color = [54, 100, 132];
 var default_lamp_color = [200, 200, 200];
+var default_world_color = [0, 0, 0];
 
 loader.load(
     // resource URL
@@ -42,9 +43,11 @@ function init(){
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
-    renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     if ( !renderer )
         renderer = new THREE.CanvasRenderer();
+
+    set_world_color(default_world_color);
 
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
@@ -92,6 +95,11 @@ function rotate_slowly(model, delta){
     model.rotation.z += delta;
 }
 
+function set_world_color(value){
+    var new_color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
+    renderer.setClearColor( new_color, 1 );
+}
+
 function set_floor_color(value){
     var floor_material = model_plane.material;
     floor_material.color.r = value[0] / 256;
@@ -101,6 +109,7 @@ function set_floor_color(value){
 
 function set_lamp_color(value){
     var new_material = new THREE.MeshBasicMaterial();
+    new_material.side = THREE.DoubleSide;
     new_material.color.r = value[0] / 256;
     new_material.color.g = value[1] / 256;
     new_material.color.b = value[2] / 256;

@@ -22,6 +22,7 @@
         this.size = 1.0;
         this.lamp_color = default_lamp_color;
         this.floor_color = default_floor_color;
+        this.world_color = default_world_color;
     };
 
     window.onload = function() {
@@ -40,6 +41,10 @@
         f2.addColor(text, 'floor_color').onChange(function(value) {
             // Fires on every change, drag, keypress, etc.
             set_floor_color(value);
+        });
+        f2.addColor(text, 'world_color').onChange(function(value) {
+            // Fires on every change, drag, keypress, etc.
+            set_world_color(value);
         });
 
         f1.open();
