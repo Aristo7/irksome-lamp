@@ -2,19 +2,11 @@
  * Created by Olex on 12/2/2015.
  */
 
-
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-
-var renderer = new THREE.WebGLRenderer();
-renderer.setSize( window.innerWidth, window.innerHeight );
-document.body.appendChild( renderer.domElement );
-
-var geometry = new THREE.BoxGeometry( 1, 1, 1 );
-var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-
-camera.position.z = 5;
-
+var scene;
+var camera;
+var renderer;
+var geometry;
+var material;
 var model_lamp;
 
 var loader = new THREE.ColladaLoader();
@@ -24,10 +16,11 @@ loader.load(
     'models/Model_for_Render.dae',
     // Function when resource is loaded
     function ( collada ) {
+        init();
+
         scene.add( collada.scene );
         model_lamp = collada.scene;
 
-        init();
         render();
     },
     // Function called when download progresses
@@ -37,6 +30,19 @@ loader.load(
 );
 
 function init(){
+
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( renderer.domElement );
+
+    geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+
+    camera.position.z = 5;
+
     // Add some lights to the scene
     var directionalLight = new THREE.DirectionalLight(0xeeeeee , 1.0);
     directionalLight.position.x = 1;
