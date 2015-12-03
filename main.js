@@ -73,7 +73,7 @@ function init(){
     document.body.appendChild( renderer.domElement );
 
     geometry = new THREE.PlaneGeometry(5, 5);
-    material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 30, shading: THREE.FlatShading } );
+    material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 1, shading: THREE.FlatShading } );
     model_plane = new THREE.Mesh(geometry, material);
     model_plane.rotation.x = -half_pi;
     model_plane.position.y = -.02; // the model is digging into the floor a bit otherwise
