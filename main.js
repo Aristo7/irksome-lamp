@@ -8,6 +8,7 @@ var renderer;
 var geometry;
 var material;
 var model_lamp;
+var model_plane;
 
 var loader = new THREE.ColladaLoader();
 
@@ -38,8 +39,10 @@ function init(){
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
-    geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    geometry = new THREE.PlaneGeometry(5, 5);
     material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    model_plane = new THREE.Mesh(geometry, material);
+    scene.add(model_plane);
 
     camera.position.z = 5;
 
@@ -62,8 +65,14 @@ function init(){
 var render = function () {
     requestAnimationFrame( render );
 
-    model_lamp.rotation.x += 0.01;
-    model_lamp.rotation.y += 0.01;
+    var rotation_speed = 0.001;
+    rotate_slowly(model_lamp, rotation_speed);
+    rotate_slowly(model_plane, rotation_speed);
 
     renderer.render(scene, camera);
 };
+
+function rotate_slowly(model, delta){
+    model.rotation.x += delta;
+    model.rotation.y += delta;
+}
