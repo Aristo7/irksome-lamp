@@ -20,8 +20,12 @@ loader.load(
     function ( collada ) {
         init();
 
+        collada.scene.rotation.x = -3.141 / 2.0;
+
         scene.add( collada.scene );
         model_lamp = collada.scene;
+
+        model_lamp.children[0].castShadow = true;
 
         render();
     },
@@ -36,7 +40,7 @@ function init(){
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
-    renderer = new THREE.WebGLRenderer();
+    renderer = new THREE.WebGLRenderer({ antialias: true, logarithmicDepthBuffer: true });
     if ( !renderer )
         renderer = new THREE.CanvasRenderer();
 
@@ -45,7 +49,9 @@ function init(){
 
     geometry = new THREE.PlaneGeometry(5, 5);
     material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    //material = new THREE.MeshDepthMaterial();
     model_plane = new THREE.Mesh(geometry, material);
+    model_plane.rotation.x = -3.141 / 2.0;
     scene.add(model_plane);
 
     camera.position.z = 5;
