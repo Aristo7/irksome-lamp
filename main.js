@@ -6,7 +6,7 @@ var scene;
 var camera;
 var renderer;
 var geometry;
-var material;
+var floor_material;
 var controls;
 var model_lamp;
 var model_plane;
@@ -58,26 +58,39 @@ function init(){
     set_world_color(default_world_color);
 
     // Setting up shadows
-    renderer.shadowMap.Enabled = true;
-    // to anti-alias the shadow
-    renderer.shadowMap.Type = THREE.PCFShadowMap;
-    renderer.shadowMap.Debug = true;
-    renderer.shadowCameraNear = 3;
-    renderer.shadowCameraFar = camera.far;
-    renderer.shadowCameraFov = 50;
-
-    renderer.shadowMapBias = 0.0039;
-    renderer.shadowMapDarkness = 0.5;
-    renderer.shadowMapWidth = 1024;
-    renderer.shadowMapHeight = 1024;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
 
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
+    // Add some lights to the scene
+    spotLight = new THREE.SpotLight( 0xffffff );
+    spotLight.position.set( 100, 1000, 100 );
+
+    spotLight.castShadow = true;
+
+    spotLight.shadowMapWidth = 1024;
+    spotLight.shadowMapHeight = 1024;
+
+    spotLight.shadowCameraNear = 50;
+    spotLight.shadowCameraFar = 10000;
+    spotLight.shadowCameraFov = 30;
+    spotLight.shadowBias = -0.005;
+
+    scene.add( spotLight );
+
+    var ambientLight = new THREE.AmbientLight(0xBBBBBB);
+    scene.add(ambientLight);
+
     // Add a plane for the lamp to stand on
     geometry = new THREE.PlaneGeometry(5, 5);
-    material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 1, shading: THREE.FlatShading } );
-    model_plane = new THREE.Mesh(geometry, material);
+
+    floor_material = new THREE.MeshLambertMaterial({
+        color: 0x6C6C6C
+    });
+
+    model_plane = new THREE.Mesh(geometry, floor_material);
     model_plane.rotation.x = -half_pi;
     model_plane.position.y = -.02; // the model is digging into the floor a bit otherwise
     set_floor_color(default_floor_color);
@@ -85,19 +98,17 @@ function init(){
     model_plane.receiveShadow = true;
     scene.add(model_plane);
 
-    // Add some lights to the scene
-    spotLight = new THREE.SpotLight( 0xAAAAAA );
-    spotLight.position.set( 5, 10, 0 );
-    spotLight.castShadow = true;
-    spotLight.shadowCameraFov = 0.7;
-    spotLight.shadowBias = 0.0001;
-    spotLight.shadowDarkness = 0.2;
-    spotLight.shadowMapWidth = 2048;
-    spotLight.shadowMapHeight = 2048;
-    scene.add( spotLight );
-
-    var ambientLight = new THREE.AmbientLight(0xBBBBBB);
-    scene.add(ambientLight);
+    // test object for shadows
+    var size = 0.2;
+    var box_geometry = new THREE.BoxGeometry(size, size, size);
+    var box_material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 1, shading: THREE.FlatShading } );
+    var box = new THREE.Mesh(box_geometry, box_material);
+    box.position.y = 0.5;
+    box.position.x = 0.5;
+    set_shadow_mode(box, true, true);
+    box.receiveShadow = true;
+    box.castShadow = true;
+    scene.add(box);
 
     // CONTROLS
     controls = new THREE.OrbitControls( camera, renderer.domElement );
