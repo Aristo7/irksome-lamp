@@ -7,6 +7,7 @@ var camera;
 var renderer;
 var geometry;
 var material;
+var controls;
 var model_lamp;
 var model_plane;
 
@@ -36,6 +37,9 @@ function init(){
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
 
     renderer = new THREE.WebGLRenderer();
+    if ( !renderer )
+        renderer = new THREE.CanvasRenderer();
+
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
@@ -60,6 +64,9 @@ function init(){
 
     var ambientLight = new THREE.AmbientLight(0xBBBBBB);
     scene.add(ambientLight);
+
+    // CONTROLS
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
 }
 
 var render = function () {
@@ -73,6 +80,7 @@ var render = function () {
 };
 
 function rotate_slowly(model, delta){
-    model.rotation.x += delta;
-    model.rotation.y += delta;
+    //model.rotation.x += delta;
+    //model.rotation.y += delta;
+    model.rotation.z += delta;
 }
