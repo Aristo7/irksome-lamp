@@ -2,19 +2,22 @@
  * Created by Olex on 12/2/2015.
  */
 
-var scene;
-var camera;
-var renderer;
-var geometry;
-var floor_material;
-var controls;
-var model_lamp;
-var model_plane;
-var model_skyBox;
-var light;
+// Common objects for the presentation
+var ThreeJSRoom = function(){
+    // to be initialized later
+    this.scene = null;
+    this.camera = null;
+    this.renderer = null;
+    this.geometry = null;
+    this.floor_material = null;
+    this.controls = null;
+    this.model_lamp = null;
+    this.model_plane = null;
+    this.model_skyBox = null;
+    this.light = null;
+};
 
-var loader = new THREE.ColladaLoader();
-
+// Various settings that a user can modify
 var Settings = function(){
     this.lamp_color = [100, 100, 100];
     this.lamp_scale = 1;
@@ -27,96 +30,91 @@ var Settings = function(){
     this.show_room = true;
 };
 
+var loader = new THREE.ColladaLoader();
 var Default = new Settings();
+var LampRoom = new ThreeJSRoom();
 
 var half_pi = Math.PI / 2.0;
 
+// Resource loading stage
 loader.load(
     // resource URL
     'models/Model_for_Render.dae',
-    // Function when resource is loaded
+    // called when resource is loaded
     function ( collada ) {
-        init();
+        LampRoom.init();
 
+        // orient the lamp so that +Y is up
         collada.scene.rotation.x = -half_pi;
 
-        scene.add( collada.scene );
-        model_lamp = collada.scene;
+        LampRoom.scene.add( collada.scene );
+        LampRoom.model_lamp = collada.scene;
 
-        set_shadow_mode(model_lamp, true, true);
-        set_lamp_color(Default.lamp_color);
-        set_lamp_size(Default.lamp_scale);
+        // set default lamp configuration
+        set_shadow_mode(LampRoom.model_lamp, true, true);
+        LampRoom.set_lamp_color(Default.lamp_color);
+        LampRoom.set_lamp_size(Default.lamp_scale);
 
-        render();
-    },
-    // Function called when download progresses
-    function ( xhr ) {
-        console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+        // start the rendering loop
+        LampRoom.render();
     }
 );
 
-function init(){
-    scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 30, window.innerWidth/window.innerHeight, 1, 100000 );
-    camera.position.z = 500;
+// Initializes three.js context and creates the scene
+ThreeJSRoom.prototype.init = function(){
+    this.scene = new THREE.Scene();
+    this.camera = new THREE.PerspectiveCamera( 30, window.innerWidth/window.innerHeight, 1, 100000 );
+    this.camera.position.z = 500;
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
-    if ( !renderer )
-        renderer = new THREE.CanvasRenderer();
+    this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    if ( !this.renderer )
+        this.renderer = new THREE.CanvasRenderer();
 
-    set_world_color(Default.world_color);
+    this.set_world_color(Default.world_color);
 
     // Setting up shadows
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.Soft = true;
-    renderer.shadowMap.type = THREE.PCFShadowMap;
-    renderer.shadowMap.cullFace = THREE.CullFaceFrontBack;
-    renderer.shadowMap.cascade = true;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.Soft = true;
+    this.renderer.shadowMap.type = THREE.PCFShadowMap;
+    this.renderer.shadowMap.cullFace = THREE.CullFaceFrontBack;
+    this.renderer.shadowMap.cascade = true;
 
-    renderer.setSize( window.innerWidth, window.innerHeight );
-    document.body.appendChild( renderer.domElement );
+    this.renderer.setSize( window.innerWidth, window.innerHeight );
+    document.body.appendChild( this.renderer.domElement );
 
     // Add some lights to the scene
-    light = new THREE.DirectionalLight(0xdfebff, 1.75);
-    light.position.set(300, 350, 50);
-    light.position.multiplyScalar(1.3);
-
-    light.castShadow = true;
-
-    light.shadowMapWidth = 1024;
-    light.shadowMapHeight = 1024;
-
+    this.light = new THREE.DirectionalLight(0xdfebff, 1.75);
+    this.light.position.set(300, 350, 50);
+    this.light.position.multiplyScalar(1.3);
+    this.light.castShadow = true;
+    this.light.shadowMapWidth = 1024;
+    this.light.shadowMapHeight = 1024;
     var d = 200;
-
-    light.shadowCameraLeft = -d;
-    light.shadowCameraRight = d;
-    light.shadowCameraTop = d;
-    light.shadowCameraBottom = -d;
-
-    light.shadowCameraFar = 30000;
-    light.shadowDarkness = 0.2;
-
-    scene.add(light);
+    this.light.shadowCameraLeft = -d;
+    this.light.shadowCameraRight = d;
+    this.light.shadowCameraTop = d;
+    this.light.shadowCameraBottom = -d;
+    this.light.shadowCameraFar = 30000;
+    this.light.shadowDarkness = 0.2;
+    this.scene.add(this.light);
 
     var ambientLight = new THREE.AmbientLight(0xBBBBBB);
-    scene.add(ambientLight);
+    this.scene.add(ambientLight);
 
     // Add a plane for the lamp to stand on
-    geometry = new THREE.PlaneGeometry(250, 250);
-
-    floor_material = new THREE.MeshLambertMaterial({
+    this.geometry = new THREE.PlaneGeometry(250, 250);
+    this.floor_material = new THREE.MeshLambertMaterial({
         color: 0x6C6C6C
     });
-
-    model_plane = new THREE.Mesh(geometry, floor_material);
-    model_plane.rotation.x = -half_pi;
-    model_plane.position.y = -1.2; // the model is digging into the floor a bit otherwise
-    set_floor_color(Default.floor_color);
-    set_shadow_mode(model_plane, false, true);
-    scene.add(model_plane);
+    this.model_plane = new THREE.Mesh(this.geometry, this.floor_material);
+    this.model_plane.rotation.x = -half_pi;
+    this.model_plane.position.y = -1.2; // the model is digging into the floor a bit otherwise
+    this.set_floor_color(Default.floor_color);
+    set_shadow_mode(this.model_plane, false, true);
+    this.scene.add(this.model_plane);
 
     // Controls
-    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    this.controls = new THREE.OrbitControls( this.camera, this.renderer.domElement );
 
     // Sky box
     var imagePrefix = "skybox/";
@@ -133,50 +131,55 @@ function init(){
     var sky_box_size = 1500;
     var skyGeometry = new THREE.CubeGeometry( sky_box_size, sky_box_size, sky_box_size );
     var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
-    model_skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
-    model_skyBox.rotation.y = -half_pi;
-    scene.add( model_skyBox );
-}
+    this.model_skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+    this.model_skyBox.rotation.y = -half_pi;
+    this.scene.add( this.model_skyBox );
+};
 
-var render = function () {
-    requestAnimationFrame( render );
+// Main render loop
+ThreeJSRoom.prototype.render = function () {
+    requestAnimationFrame( ThreeJSRoom.prototype.render );
 
     if (Default.lamp_spin) {
         var rotation_speed = 0.001;
-        rotate_slowly(model_lamp, rotation_speed);
-        rotate_slowly(model_plane, rotation_speed);
-        model_skyBox.rotation.y += rotation_speed;
+        rotate_slowly(LampRoom.model_lamp, rotation_speed);
+        rotate_slowly(LampRoom.model_plane, rotation_speed);
+        LampRoom.model_skyBox.rotation.y += rotation_speed;
     }
 
-    renderer.render(scene, camera);
+    LampRoom.renderer.render(LampRoom.scene, LampRoom.camera);
 };
 
+// A helper method to rotate an object
 function rotate_slowly(model, delta){
     model.rotation.z += delta;
 }
 
-function set_world_color(value){
+// background clear color
+ThreeJSRoom.prototype.set_world_color = function(value){
     var new_color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
-    renderer.setClearColor( new_color, 1 );
-}
+    this.renderer.setClearColor( new_color, 1 );
+};
 
-function set_floor_color(value){
-    var floor_material = model_plane.material;
+// floor plane color
+ThreeJSRoom.prototype.set_floor_color = function(value){
+    var floor_material = this.model_plane.material;
     floor_material.color.r = value[0] / 256;
     floor_material.color.g = value[1] / 256;
     floor_material.color.b = value[2] / 256;
-}
+};
 
-function set_lamp_color(value){
+// lamp color converts from int [rgb] to float [rgb]
+ThreeJSRoom.prototype.set_lamp_color = function(value){
     var new_material = new THREE.MeshPhongMaterial( { specular: 0x555555, shininess: 30, shading: THREE.SmoothShading } );
     new_material.side = THREE.DoubleSide;
     new_material.color.r = value[0] / 256;
     new_material.color.g = value[1] / 256;
     new_material.color.b = value[2] / 256;
-    set_material(model_lamp, new_material);
-}
+    set_material(this.model_lamp, new_material);
+};
 
-// Recursive
+// Recursively set material for a given scene object
 var set_material = function(node, material) {
     node.material = material;
 
@@ -187,7 +190,7 @@ var set_material = function(node, material) {
     }
 };
 
-// Recursive
+// Recursive set shadow mode for a given scene object
 var set_shadow_mode = function(node, castShadow, receiveShadow) {
     node.castShadow = castShadow;
     node.receiveShadow = receiveShadow;
@@ -199,31 +202,37 @@ var set_shadow_mode = function(node, castShadow, receiveShadow) {
     }
 };
 
+// A helper scaling method
 var set_model_scale = function(node, scale){
     node.scale.x = node.scale.y = node.scale.z = scale;
 };
 
-function set_lamp_size(scale){
+// Change the size of the lamp
+ThreeJSRoom.prototype.set_lamp_size = function(scale){
     var internal_scale_ratio = 50;
-    set_model_scale(model_lamp, scale * internal_scale_ratio);
-}
+    set_model_scale(this.model_lamp, scale * internal_scale_ratio);
+};
 
-function set_light_color(value){
-    light.color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
-}
+// Change the color of the light in the scene
+ThreeJSRoom.prototype.set_light_color = function(value){
+    this.light.color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
+};
 
-function set_lamp_spin(value){
+// Change if the room should spin or not
+ThreeJSRoom.prototype.set_lamp_spin = function(value){
     Default.lamp_spin = value;
-}
+};
 
-function set_floor_state(value){
+// Hide or show the floor plane that a lamp stands on
+ThreeJSRoom.prototype.set_floor_state = function(value){
     Default.show_plane = value;
 
-    model_plane.visible = Default.show_plane;
-}
+    this.model_plane.visible = Default.show_plane;
+};
 
-function set_room_state(value){
+// Hide or show the skybox
+ThreeJSRoom.prototype.set_room_state = function(value){
     Default.show_room = value;
 
-    model_skyBox.visible = Default.show_room;
-}
+    this.model_skyBox.visible = Default.show_room;
+};
