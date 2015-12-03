@@ -18,6 +18,7 @@ var default_lamp_color = [100, 100, 100];
 var default_light_color = [255, 255, 255];
 var default_world_color = [0, 0, 0];
 var default_lamp_scale = 1;
+var default_lamp_spin = true;
 
 var half_pi = Math.PI / 2.0;
 
@@ -56,6 +57,7 @@ function init(){
 
     set_world_color(default_world_color);
 
+    // Setting up shadows
     renderer.shadowMap.Enabled = true;
     // to anti-alias the shadow
     renderer.shadowMap.Type = THREE.PCFShadowMap;
@@ -72,6 +74,7 @@ function init(){
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
+    // Add a plane for the lamp to stand on
     geometry = new THREE.PlaneGeometry(5, 5);
     material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 1, shading: THREE.FlatShading } );
     model_plane = new THREE.Mesh(geometry, material);
@@ -103,9 +106,11 @@ function init(){
 var render = function () {
     requestAnimationFrame( render );
 
-    var rotation_speed = 0.001;
-    rotate_slowly(model_lamp, rotation_speed);
-    rotate_slowly(model_plane, rotation_speed);
+    if (default_lamp_spin) {
+        var rotation_speed = 0.001;
+        rotate_slowly(model_lamp, rotation_speed);
+        rotate_slowly(model_plane, rotation_speed);
+    }
 
     renderer.render(scene, camera);
 };
@@ -168,4 +173,8 @@ function set_lamp_size(scale){
 
 function set_light_color(value){
     spotLight.color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
+}
+
+function set_lamp_spin(value){
+    default_lamp_spin = value;
 }
