@@ -10,10 +10,12 @@ var material;
 var controls;
 var model_lamp;
 var model_plane;
+var spotLight;
 
 var loader = new THREE.ColladaLoader();
 var default_floor_color = [54, 100, 132];
 var default_lamp_color = [100, 100, 100];
+var default_light_color = [255, 255, 255];
 var default_world_color = [0, 0, 0];
 var default_lamp_scale = 1;
 
@@ -81,7 +83,7 @@ function init(){
     scene.add(model_plane);
 
     // Add some lights to the scene
-    var spotLight = new THREE.SpotLight( 0xAAAAAA );
+    spotLight = new THREE.SpotLight( 0xAAAAAA );
     spotLight.position.set( 5, 10, 0 );
     spotLight.castShadow = true;
     spotLight.shadowCameraFov = 0.7;
@@ -162,4 +164,8 @@ var set_model_scale = function(node, scale){
 
 function set_lamp_size(scale){
     set_model_scale(model_lamp, scale);
+}
+
+function set_light_color(value){
+    spotLight.color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
 }
