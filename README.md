@@ -1,6 +1,11 @@
 # irksome-lamp
 A simple prototype lamp presentation.
 
+Mouse drag to rotate the scene.
+
+Mouse wheel to zoom in or zoom out.
+
+
 ## Code
 
 My code is in 3 files here of the root folder:
