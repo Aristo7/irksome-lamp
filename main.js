@@ -10,7 +10,7 @@ var floor_material;
 var controls;
 var model_lamp;
 var model_plane;
-var spotLight;
+var light;
 
 var loader = new THREE.ColladaLoader();
 var default_floor_color = [54, 100, 132];
@@ -36,7 +36,7 @@ loader.load(
 
         set_shadow_mode(model_lamp, true, true);
         set_lamp_color(default_lamp_color);
-        set_model_scale(model_lamp, default_lamp_scale);
+        set_lamp_size(default_lamp_scale);
 
         render();
     },
@@ -48,8 +48,8 @@ loader.load(
 
 function init(){
     scene = new THREE.Scene();
-    camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
-    camera.position.z = 5;
+    camera = new THREE.PerspectiveCamera( 30, window.innerWidth/window.innerHeight, 1, 100000 );
+    camera.position.z = 500;
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     if ( !renderer )
@@ -59,32 +59,40 @@ function init(){
 
     // Setting up shadows
     renderer.shadowMap.enabled = true;
+    renderer.shadowMap.Soft = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
 
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
     // Add some lights to the scene
-    spotLight = new THREE.SpotLight( 0xffffff );
-    spotLight.position.set( 100, 1000, 100 );
+    light = new THREE.DirectionalLight(0xdfebff, 1.75);
+    light.position.set(300, 400, 50);
+    light.position.multiplyScalar(1.3);
 
-    spotLight.castShadow = true;
+    light.castShadow = true;
+    light.shadowCameraVisible = true;
 
-    spotLight.shadowMapWidth = 1024;
-    spotLight.shadowMapHeight = 1024;
+    light.shadowMapWidth = 512;
+    light.shadowMapHeight = 512;
 
-    spotLight.shadowCameraNear = 50;
-    spotLight.shadowCameraFar = 10000;
-    spotLight.shadowCameraFov = 30;
-    spotLight.shadowBias = -0.005;
+    var d = 200;
 
-    scene.add( spotLight );
+    light.shadowCameraLeft = -d;
+    light.shadowCameraRight = d;
+    light.shadowCameraTop = d;
+    light.shadowCameraBottom = -d;
+
+    light.shadowCameraFar = 1000;
+    light.shadowDarkness = 0.2;
+
+    scene.add(light);
 
     var ambientLight = new THREE.AmbientLight(0xBBBBBB);
     scene.add(ambientLight);
 
     // Add a plane for the lamp to stand on
-    geometry = new THREE.PlaneGeometry(5, 5);
+    geometry = new THREE.PlaneGeometry(250, 250);
 
     floor_material = new THREE.MeshLambertMaterial({
         color: 0x6C6C6C
@@ -92,23 +100,11 @@ function init(){
 
     model_plane = new THREE.Mesh(geometry, floor_material);
     model_plane.rotation.x = -half_pi;
-    model_plane.position.y = -.02; // the model is digging into the floor a bit otherwise
+    model_plane.position.y = -1.2; // the model is digging into the floor a bit otherwise
     set_floor_color(default_floor_color);
     set_shadow_mode(model_plane, true, true);
     model_plane.receiveShadow = true;
     scene.add(model_plane);
-
-    // test object for shadows
-    var size = 0.2;
-    var box_geometry = new THREE.BoxGeometry(size, size, size);
-    var box_material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 1, shading: THREE.FlatShading } );
-    var box = new THREE.Mesh(box_geometry, box_material);
-    box.position.y = 0.5;
-    box.position.x = 0.5;
-    set_shadow_mode(box, true, true);
-    box.receiveShadow = true;
-    box.castShadow = true;
-    scene.add(box);
 
     // CONTROLS
     controls = new THREE.OrbitControls( camera, renderer.domElement );
@@ -179,11 +175,12 @@ var set_model_scale = function(node, scale){
 };
 
 function set_lamp_size(scale){
-    set_model_scale(model_lamp, scale);
+    var internal_scale_ratio = 50;
+    set_model_scale(model_lamp, scale * internal_scale_ratio);
 }
 
 function set_light_color(value){
-    spotLight.color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
+    light.color = new THREE.Color(value[0] / 256, value[1] / 256, value[2] / 256);
 }
 
 function set_lamp_spin(value){
