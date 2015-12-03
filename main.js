@@ -10,15 +10,24 @@ var floor_material;
 var controls;
 var model_lamp;
 var model_plane;
+var model_skyBox;
 var light;
 
 var loader = new THREE.ColladaLoader();
-var default_floor_color = [54, 100, 132];
-var default_lamp_color = [100, 100, 100];
-var default_light_color = [255, 255, 255];
-var default_world_color = [0, 0, 0];
-var default_lamp_scale = 1;
-var default_lamp_spin = true;
+
+var Settings = function(){
+    this.lamp_color = [100, 100, 100];
+    this.lamp_scale = 1;
+    this.lamp_spin = true;
+
+    this.floor_color = [54, 100, 132];
+    this.light_color = [255, 255, 255];
+    this.world_color = [0, 0, 0];
+    this.show_plane = true;
+    this.show_room = true;
+};
+
+var Default = new Settings();
 
 var half_pi = Math.PI / 2.0;
 
@@ -35,8 +44,8 @@ loader.load(
         model_lamp = collada.scene;
 
         set_shadow_mode(model_lamp, true, true);
-        set_lamp_color(default_lamp_color);
-        set_lamp_size(default_lamp_scale);
+        set_lamp_color(Default.lamp_color);
+        set_lamp_size(Default.lamp_scale);
 
         render();
     },
@@ -55,26 +64,27 @@ function init(){
     if ( !renderer )
         renderer = new THREE.CanvasRenderer();
 
-    set_world_color(default_world_color);
+    set_world_color(Default.world_color);
 
     // Setting up shadows
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.Soft = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
+    renderer.shadowMap.cullFace = THREE.CullFaceFrontBack;
+    renderer.shadowMap.cascade = true;
 
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
     // Add some lights to the scene
     light = new THREE.DirectionalLight(0xdfebff, 1.75);
-    light.position.set(300, 400, 50);
+    light.position.set(300, 350, 50);
     light.position.multiplyScalar(1.3);
 
     light.castShadow = true;
-    light.shadowCameraVisible = true;
 
-    light.shadowMapWidth = 512;
-    light.shadowMapHeight = 512;
+    light.shadowMapWidth = 1024;
+    light.shadowMapHeight = 1024;
 
     var d = 200;
 
@@ -83,7 +93,7 @@ function init(){
     light.shadowCameraTop = d;
     light.shadowCameraBottom = -d;
 
-    light.shadowCameraFar = 1000;
+    light.shadowCameraFar = 30000;
     light.shadowDarkness = 0.2;
 
     scene.add(light);
@@ -101,22 +111,41 @@ function init(){
     model_plane = new THREE.Mesh(geometry, floor_material);
     model_plane.rotation.x = -half_pi;
     model_plane.position.y = -1.2; // the model is digging into the floor a bit otherwise
-    set_floor_color(default_floor_color);
-    set_shadow_mode(model_plane, true, true);
-    model_plane.receiveShadow = true;
+    set_floor_color(Default.floor_color);
+    set_shadow_mode(model_plane, false, true);
     scene.add(model_plane);
 
-    // CONTROLS
+    // Controls
     controls = new THREE.OrbitControls( camera, renderer.domElement );
+
+    // Sky box
+    var imagePrefix = "skybox/";
+    var directions  = ["posx", "negx", "posy", "negy", "posz", "negz"];
+    var imageSuffix = ".jpg";
+
+    var materialArray = [];
+    for (var i = 0; i < 6; i++)
+        materialArray.push( new THREE.MeshBasicMaterial({
+            map: THREE.ImageUtils.loadTexture( imagePrefix + directions[i] + imageSuffix ),
+            side: THREE.BackSide
+        }));
+
+    var sky_box_size = 1500;
+    var skyGeometry = new THREE.CubeGeometry( sky_box_size, sky_box_size, sky_box_size );
+    var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+    model_skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+    model_skyBox.rotation.y = -half_pi;
+    scene.add( model_skyBox );
 }
 
 var render = function () {
     requestAnimationFrame( render );
 
-    if (default_lamp_spin) {
+    if (Default.lamp_spin) {
         var rotation_speed = 0.001;
         rotate_slowly(model_lamp, rotation_speed);
         rotate_slowly(model_plane, rotation_speed);
+        model_skyBox.rotation.y += rotation_speed;
     }
 
     renderer.render(scene, camera);
@@ -139,7 +168,7 @@ function set_floor_color(value){
 }
 
 function set_lamp_color(value){
-    var new_material = new THREE.MeshPhongMaterial( { specular: 0x555555, shininess: 30, shading: THREE.FlatShading } );
+    var new_material = new THREE.MeshPhongMaterial( { specular: 0x555555, shininess: 30, shading: THREE.SmoothShading } );
     new_material.side = THREE.DoubleSide;
     new_material.color.r = value[0] / 256;
     new_material.color.g = value[1] / 256;
@@ -184,5 +213,17 @@ function set_light_color(value){
 }
 
 function set_lamp_spin(value){
-    default_lamp_spin = value;
+    Default.lamp_spin = value;
+}
+
+function set_floor_state(value){
+    Default.show_plane = value;
+
+    model_plane.visible = Default.show_plane;
+}
+
+function set_room_state(value){
+    Default.show_room = value;
+
+    model_skyBox.visible = Default.show_room;
 }
