@@ -16,6 +16,8 @@ var default_floor_color = [54, 100, 132];
 var default_lamp_color = [100, 100, 100];
 var default_world_color = [0, 0, 0];
 
+var half_pi = Math.PI / 2.0;
+
 loader.load(
     // resource URL
     'models/Model_for_Render.dae',
@@ -23,10 +25,12 @@ loader.load(
     function ( collada ) {
         init();
 
-        collada.scene.rotation.x = -3.141 / 2.0;
+        collada.scene.rotation.x = -half_pi;
 
         scene.add( collada.scene );
         model_lamp = collada.scene;
+
+        set_shadow_mode(model_lamp, true, true);
 
         set_lamp_color(default_lamp_color);
 
@@ -39,9 +43,9 @@ loader.load(
 );
 
 function init(){
-
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+    camera.position.z = 5;
 
     renderer = new THREE.WebGLRenderer({ antialias: true });
     if ( !renderer )
@@ -49,29 +53,41 @@ function init(){
 
     set_world_color(default_world_color);
 
+    renderer.shadowMap.Enabled = true;
+    // to anti-alias the shadow
+    renderer.shadowMap.Type = THREE.PCFShadowMap;
+    renderer.shadowMap.Debug = true;
+    renderer.shadowCameraNear = 3;
+    renderer.shadowCameraFar = camera.far;
+    renderer.shadowCameraFov = 50;
+
+    renderer.shadowMapBias = 0.0039;
+    renderer.shadowMapDarkness = 0.5;
+    renderer.shadowMapWidth = 1024;
+    renderer.shadowMapHeight = 1024;
+
     renderer.setSize( window.innerWidth, window.innerHeight );
     document.body.appendChild( renderer.domElement );
 
     geometry = new THREE.PlaneGeometry(5, 5);
     material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 30, shading: THREE.FlatShading } );
     model_plane = new THREE.Mesh(geometry, material);
-    model_plane.rotation.x = -3.141 / 2.0;
-    scene.add(model_plane);
+    model_plane.rotation.x = -half_pi;
     set_floor_color(default_floor_color);
-
-    camera.position.z = 5;
+    set_shadow_mode(model_plane, true, true);
+    model_plane.receiveShadow = true;
+    scene.add(model_plane);
 
     // Add some lights to the scene
-    var directionalLight = new THREE.DirectionalLight(0xeeeeee , 1.0);
-    directionalLight.position.x = 1;
-    directionalLight.position.y = 0;
-    directionalLight.position.z = 0;
-    scene.add( directionalLight );
-
-    var directionalLight2 = new THREE.DirectionalLight(0xeeeeee, 2.0);
-    // A different way to specify the position:
-    directionalLight2.position.set(-1, 0, 1);
-    scene.add( directionalLight2 );
+    var spotLight = new THREE.SpotLight( 0xAAAAAA );
+    spotLight.position.set( 5, 10, 0 );
+    spotLight.castShadow = true;
+    spotLight.shadowCameraFov = 0.7;
+    spotLight.shadowBias = 0.0001;
+    spotLight.shadowDarkness = 0.2;
+    spotLight.shadowMapWidth = 2048;
+    spotLight.shadowMapHeight = 2048;
+    scene.add( spotLight );
 
     var ambientLight = new THREE.AmbientLight(0xBBBBBB);
     scene.add(ambientLight);
@@ -107,20 +123,33 @@ function set_floor_color(value){
 }
 
 function set_lamp_color(value){
-    //var new_material = new THREE.MeshBasicMaterial();
     var new_material = new THREE.MeshPhongMaterial( { specular: 0x555555, shininess: 30, shading: THREE.FlatShading } );
     new_material.side = THREE.DoubleSide;
     new_material.color.r = value[0] / 256;
     new_material.color.g = value[1] / 256;
     new_material.color.b = value[2] / 256;
-    setMaterial(model_lamp, new_material);
+    set_material(model_lamp, new_material);
 }
 
-var setMaterial = function(node, material) {
+// Recursive
+var set_material = function(node, material) {
     node.material = material;
+
     if (node.children) {
         for (var i = 0; i < node.children.length; i++) {
-            setMaterial(node.children[i], material);
+            set_material(node.children[i], material);
         }
     }
-}
+};
+
+// Recursive
+var set_shadow_mode = function(node, castShadow, receiveShadow) {
+    node.castShadow = castShadow;
+    node.receiveShadow = receiveShadow;
+
+    if (node.children) {
+        for (var i = 0; i < node.children.length; i++) {
+            set_shadow_mode(node.children[i], castShadow, receiveShadow);
+        }
+    }
+};
