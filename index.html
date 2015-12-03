@@ -2,90 +2,51 @@
 <html>
 <head>
 	<title>Blender Model Presentation by Olex</title>
-
-
-    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
-    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
-    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-
 	<style>
 		body { margin: 0; }
 		canvas { width: 100%; height: 100% }
 	</style>
-
-    <style>
-        #red, #green, #blue {
-            float: left;
-            clear: left;
-            width: 300px;
-            margin: 15px;
-        }
-        #swatch {
-            width: 120px;
-            height: 100px;
-            margin-top: 18px;
-            margin-left: 350px;
-            background-image: none;
-        }
-        #red .ui-slider-range { background: #ef2929; }
-        #red .ui-slider-handle { border-color: #ef2929; }
-        #green .ui-slider-range { background: #8ae234; }
-        #green .ui-slider-handle { border-color: #8ae234; }
-        #blue .ui-slider-range { background: #729fcf; }
-        #blue .ui-slider-handle { border-color: #729fcf; }
-    </style>
-    <script>
-        function hexFromRGB(r, g, b) {
-            var hex = [
-                r.toString( 16 ),
-                g.toString( 16 ),
-                b.toString( 16 )
-            ];
-            $.each( hex, function( nr, val ) {
-                if ( val.length === 1 ) {
-                    hex[ nr ] = "0" + val;
-                }
-            });
-            return hex.join( "" ).toUpperCase();
-        }
-        function refreshSwatch() {
-            var red = $( "#red" ).slider( "value" ),
-                    green = $( "#green" ).slider( "value" ),
-                    blue = $( "#blue" ).slider( "value" ),
-                    hex = hexFromRGB( red, green, blue );
-            $( "#swatch" ).css( "background-color", "#" + hex );
-        }
-        $(function() {
-            $( "#red, #green, #blue" ).slider({
-                orientation: "horizontal",
-                range: "min",
-                max: 255,
-                value: 127,
-                slide: refreshSwatch,
-                change: refreshSwatch
-            });
-            $( "#red" ).slider( "value", 255 );
-            $( "#green" ).slider( "value", 140 );
-            $( "#blue" ).slider( "value", 60 );
-        });
-    </script>
 </head>
 <body>
 <script src="three/three.js"></script>
 <script src="three/controls/OrbitControls.js"></script>
 <script src="three/loaders/ColladaLoader.js"></script>
+<script type="text/javascript" src="three/libs/dat.gui.min.js"></script>
+
 <script src="main.js"></script>
 
-<p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding:4px;">
-    <span class="ui-icon ui-icon-pencil" style="float:left; margin:-2px 5px 0 0;"></span>
-    Lamp Colorpicker
-</p>
+<script type="text/javascript">
 
-<div id="red"></div>
-<div id="green"></div>
-<div id="blue"></div>
+    var FizzyText = function() {
+        this.type = 'Your Lamp Name';
+        this.size = 1.0;
+        this.lamp_color = default_lamp_color;
+        this.floor_color = default_floor_color;
+    };
 
-<div id="swatch" class="ui-widget-content ui-corner-all"></div>
+    window.onload = function() {
+        var text = new FizzyText();
+        var gui = new dat.GUI();
+
+        var f1 = gui.addFolder('Lamp');
+        var lamp_type_controller = f1.add(text, 'type', [ 'Lamp Type 1', 'Lamp Type 2', 'Lamp Type 3' ]);
+        f1.add(text, 'size', 0.01, 5);
+        f1.addColor(text, 'lamp_color').onChange(function(value) {
+            // Fires on every change, drag, keypress, etc.
+            //set_lamp_color(value);
+        });
+
+        var f2 = gui.addFolder('Environment');
+        f2.addColor(text, 'floor_color').onChange(function(value) {
+            // Fires on every change, drag, keypress, etc.
+            set_floor_color(value);
+        });
+
+        f1.open();
+        f2.open();
+    };
+
+</script>
 
 </body>
 </html>

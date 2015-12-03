@@ -12,6 +12,8 @@ var model_lamp;
 var model_plane;
 
 var loader = new THREE.ColladaLoader();
+var default_floor_color = [54, 100, 132];
+var default_lamp_color = [200, 200, 200];
 
 loader.load(
     // resource URL
@@ -25,7 +27,7 @@ loader.load(
         scene.add( collada.scene );
         model_lamp = collada.scene;
 
-        model_lamp.children[0].castShadow = true;
+        set_lamp_color(default_lamp_color);
 
         render();
     },
@@ -53,6 +55,7 @@ function init(){
     model_plane = new THREE.Mesh(geometry, material);
     model_plane.rotation.x = -3.141 / 2.0;
     scene.add(model_plane);
+    set_floor_color(default_floor_color);
 
     camera.position.z = 5;
 
@@ -89,4 +92,18 @@ function rotate_slowly(model, delta){
     //model.rotation.x += delta;
     //model.rotation.y += delta;
     model.rotation.z += delta;
+}
+
+function set_floor_color(value){
+    var floor_material = model_plane.material;
+    floor_material.color.r = value[0] / 256;
+    floor_material.color.g = value[1] / 256;
+    floor_material.color.b = value[2] / 256;
+}
+
+function set_lamp_color(value){
+    //var lamp_material = model_lamp.material;
+    //lamp_material.color.r = value[0] / 256;
+    //lamp_material.color.g = value[1] / 256;
+    //lamp_material.color.b = value[2] / 256;
 }
