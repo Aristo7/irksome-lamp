@@ -15,6 +15,7 @@ var loader = new THREE.ColladaLoader();
 var default_floor_color = [54, 100, 132];
 var default_lamp_color = [100, 100, 100];
 var default_world_color = [0, 0, 0];
+var default_lamp_scale = 1;
 
 var half_pi = Math.PI / 2.0;
 
@@ -31,8 +32,8 @@ loader.load(
         model_lamp = collada.scene;
 
         set_shadow_mode(model_lamp, true, true);
-
         set_lamp_color(default_lamp_color);
+        set_model_scale(model_lamp, default_lamp_scale);
 
         render();
     },
@@ -73,6 +74,7 @@ function init(){
     material = new THREE.MeshPhongMaterial( { specular: 0x009900, shininess: 30, shading: THREE.FlatShading } );
     model_plane = new THREE.Mesh(geometry, material);
     model_plane.rotation.x = -half_pi;
+    model_plane.position.y = -.02; // the model is digging into the floor a bit otherwise
     set_floor_color(default_floor_color);
     set_shadow_mode(model_plane, true, true);
     model_plane.receiveShadow = true;
@@ -153,3 +155,11 @@ var set_shadow_mode = function(node, castShadow, receiveShadow) {
         }
     }
 };
+
+var set_model_scale = function(node, scale){
+    node.scale.x = node.scale.y = node.scale.z = scale;
+};
+
+function set_lamp_size(scale){
+    set_model_scale(model_lamp, scale);
+}

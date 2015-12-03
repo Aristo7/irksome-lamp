@@ -4,7 +4,7 @@
 
 var FizzyText = function() {
     this.type = 'Your Lamp Name';
-    this.size = 1.0;
+    this.size = default_lamp_scale;
     this.lamp_color = default_lamp_color;
     this.floor_color = default_floor_color;
     this.world_color = default_world_color;
@@ -16,7 +16,10 @@ window.onload = function() {
 
     var f1 = gui.addFolder('Lamp');
     var lamp_type_controller = f1.add(text, 'type', [ 'Lamp Type 1', 'Lamp Type 2', 'Lamp Type 3' ]);
-    f1.add(text, 'size', 0.01, 5);
+    f1.add(text, 'size', 0.5, 2.5).onChange(function(value) {
+        // Fires on every change, drag, keypress, etc.
+        set_lamp_size(value);
+    });
     f1.addColor(text, 'lamp_color').onChange(function(value) {
         // Fires on every change, drag, keypress, etc.
         set_lamp_color(value);
